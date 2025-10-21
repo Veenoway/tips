@@ -1,6 +1,13 @@
 "use client";
 
+import { Address, Avatar, Identity, Name } from "@coinbase/onchainkit/identity";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
+import {
+  ConnectWallet,
+  Wallet,
+  WalletDropdown,
+  WalletDropdownDisconnect,
+} from "@coinbase/onchainkit/wallet";
 import { useEffect, useState } from "react";
 import { useTipping } from "./hooks/useTipping";
 import styles from "./page.module.css";
@@ -56,6 +63,20 @@ export default function Home() {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.contentWrapper}>
+        <Wallet>
+          <ConnectWallet>
+            <Avatar />
+            <Name />
+          </ConnectWallet>
+          <WalletDropdown>
+            <Identity hasCopyAddressOnClick>
+              <Avatar />
+              <Name />
+              <Address />
+            </Identity>
+            <WalletDropdownDisconnect />
+          </WalletDropdown>
+        </Wallet>
         {/* Header */}
         <header className={styles.header}>
           <h1 className={styles.title}>TipBase</h1>
