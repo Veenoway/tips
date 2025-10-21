@@ -19,7 +19,7 @@ export const minikitConfig = {
   },
   miniapp: {
     version: "1",
-    name: "TipsBase",
+    name: "BaseTips",
     subtitle: "Tips on Base",
     description: "tips on base",
     screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
