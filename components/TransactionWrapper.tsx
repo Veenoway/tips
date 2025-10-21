@@ -55,7 +55,11 @@ export function TransactionWrapper({
               disabled={isDisabled}
               className="transaction-button"
             >
-              {status === "pending" ? "Processing..." : "Send at light speed"}
+              {status === "pending"
+                ? "Processing..."
+                : status === "success"
+                ? "View transaction"
+                : "Send at light speed"}
             </button>
           )}
         />

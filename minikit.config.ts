@@ -19,9 +19,9 @@ export const minikitConfig = {
   },
   miniapp: {
     version: "1",
-    name: "Cubey",
-    subtitle: "Your AI Ad Companion",
-    description: "Ads",
+    name: "TipsBase",
+    subtitle: "Tips on Base",
+    description: "tips on base",
     screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
     iconUrl: `${ROOT_URL}/blue-icon.png`,
     splashImageUrl: `${ROOT_URL}/blue-hero.png`,
