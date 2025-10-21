@@ -48,7 +48,7 @@ export function TransactionWrapper({
     <Transaction chainId={8453} calls={calls} onStatus={onStatus}>
       <div>
         {/* @ts-ignore */}
-        <TransactionButton
+        {/* <TransactionButton
           render={({ status, onSubmit, isDisabled }) => (
             <button
               onClick={onSubmit}
@@ -62,7 +62,8 @@ export function TransactionWrapper({
                 : "Send at light speed"}
             </button>
           )}
-        />
+        /> */}
+        <TransactionButton></TransactionButton>
         <TransactionSponsor />
       </div>
       <TransactionStatus>
