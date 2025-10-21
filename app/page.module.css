@@ -10,13 +10,12 @@
 }
 
 .header {
-  margin-bottom: 3rem;
-  padding-top: 60px;
+  margin-bottom: 2rem;
+  padding-top: 55px;
   text-align: center;
 }
 
 .title {
-  margin-bottom: 0.5rem;
   font-size: 3rem;
   font-weight: 900;
   letter-spacing: -0.05em;
@@ -130,7 +129,7 @@
   border-radius: 8px;
   border: 2px solid #e8e8e8;
   background-color: white;
-  padding: 0.625rem 1.25rem;
+  padding: 0.5rem 0.9rem;
   font-size: 0.875rem;
   font-weight: 700;
   color: #666;

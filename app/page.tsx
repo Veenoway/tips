@@ -1,14 +1,21 @@
 "use client";
 
-import { Address, Avatar, Identity, Name } from "@coinbase/onchainkit/identity";
+import { TransactionWrapper } from "@/components/TransactionWrapper";
+import {
+  Address,
+  EthBalance,
+  Identity,
+  Name,
+} from "@coinbase/onchainkit/identity";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import {
   ConnectWallet,
   Wallet,
   WalletDropdown,
+  WalletDropdownBasename,
   WalletDropdownDisconnect,
 } from "@coinbase/onchainkit/wallet";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTipping } from "./hooks/useTipping";
 import styles from "./page.module.css";
 
@@ -16,17 +23,14 @@ type Currency = "ETH" | "USDC";
 
 export default function Home() {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>("ETH");
-  const [amount, setAmount] = useState(10);
+  const [amount, setAmount] = useState(0.0001);
   const [recipient, setRecipient] = useState("");
   const [message, setMessage] = useState("");
 
-  const quickAmounts = [5, 10, 25, 50];
-  const platformFeePercent = 2;
+  const quickAmounts = [0.0001, 0.001, 0.01, 0.1];
+  const platformFeePercent = 0;
   const platformFee = (amount * platformFeePercent) / 100;
   const recipientGets = amount - platformFee;
-
-  const ethPrice = 2380;
-  const ethAmount = amount / ethPrice;
 
   const { isFrameReady, setFrameReady } = useMiniKit();
 
@@ -46,6 +50,8 @@ export default function Home() {
     sendTip,
     calculateFee,
     txHash,
+    buildEthTipCalls,
+    handleLifecycleStatus,
   } = useTipping();
 
   console.log(
@@ -60,23 +66,38 @@ export default function Home() {
     txHash
   );
 
+  const calls = useMemo(() => {
+    const call = buildEthTipCalls(recipient as `0x${string}`, amount);
+    return call ? [call] : [];
+  }, [recipient, amount, buildEthTipCalls]);
+
+  console.log("calls", calls);
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.contentWrapper}>
-        <Wallet>
-          <ConnectWallet>
-            <Avatar />
-            <Name />
-          </ConnectWallet>
-          <WalletDropdown>
-            <Identity hasCopyAddressOnClick>
-              <Avatar />
+        <div
+          style={{
+            position: "absolute",
+            right: "20px",
+            top: "20px",
+          }}
+        >
+          <Wallet>
+            <ConnectWallet>
               <Name />
-              <Address />
-            </Identity>
-            <WalletDropdownDisconnect />
-          </WalletDropdown>
-        </Wallet>
+            </ConnectWallet>
+            <WalletDropdown>
+              <Identity hasCopyAddressOnClick>
+                <Name />
+                <Address />
+                <EthBalance />
+              </Identity>
+              <WalletDropdownBasename />
+              <WalletDropdownDisconnect />
+            </WalletDropdown>
+          </Wallet>
+        </div>
         {/* Header */}
         <header className={styles.header}>
           <h1 className={styles.title}>TipBase</h1>
@@ -103,17 +124,18 @@ export default function Home() {
                   onClick={() => setSelectedCurrency(currency)}
                   className={`${styles.currencyButton} ${
                     selectedCurrency === currency ? styles.active : ""
-                  }`}
+                  } ${currency === "USDC" ? styles.disabled : ""}`}
+                  disabled={currency === "USDC"}
                 >
                   {currency}
                 </button>
               ))}
             </div>
 
-            <div className={styles.amountDisplay}>${amount.toFixed(2)}</div>
-            <div className={styles.ethEquivalent}>
+            <div className={styles.amountDisplay}>{amount}</div>
+            {/* <div className={styles.ethEquivalent}>
               ≈ {ethAmount.toFixed(4)} ETH
-            </div>
+            </div> */}
 
             {/* Quick Amount Buttons */}
             <div className={styles.quickAmounts}>
@@ -123,7 +145,7 @@ export default function Home() {
                   onClick={() => setAmount(quickAmount)}
                   className={styles.quickAmountButton}
                 >
-                  ${quickAmount}
+                  {quickAmount}
                 </button>
               ))}
             </div>
@@ -148,30 +170,30 @@ export default function Home() {
           <div>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Amount</span>
-              <span className={styles.infoValue}>${amount.toFixed(2)}</span>
+              <span className={styles.infoValue}>{amount} ETH</span>
             </div>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>
                 Platform Fee ({platformFeePercent}%)
               </span>
-              <span className={styles.infoValue}>
-                ${platformFee.toFixed(2)}
-              </span>
+              <span className={styles.infoValue}>${platformFee}</span>
             </div>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Recipient Gets</span>
-              <span className={styles.infoValue}>
-                ${recipientGets.toFixed(2)}
-              </span>
+              <span className={styles.infoValue}>{recipientGets} ETH</span>
             </div>
           </div>
 
           {/* Send Button */}
-          <button className={styles.primaryButton}>Send Tip Now</button>
+          <TransactionWrapper
+            calls={calls}
+            onStatus={handleLifecycleStatus}
+            disabled={!recipient || calls.length === 0}
+          />
         </div>
 
         {/* Balance Card */}
-        <div className={styles.card}>
+        {/* <div className={styles.card}>
           <label className={styles.label}>Your Balance</label>
 
           <div className={styles.balanceBox}>
@@ -186,10 +208,10 @@ export default function Home() {
           </div>
 
           <button className={styles.primaryButton}>Withdraw</button>
-        </div>
+        </div> */}
 
         {/* Stats Card */}
-        <div className={styles.card}>
+        {/* <div className={styles.card}>
           <div className={styles.statsContainer}>
             <div className={styles.statItem}>
               <div className={styles.statNumber}>1,234</div>
@@ -204,7 +226,7 @@ export default function Home() {
               <div className={styles.statLabel}>Earned</div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

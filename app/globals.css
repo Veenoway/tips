@@ -57,4 +57,23 @@
       color-scheme: dark;
     }
   }
+
+  .transaction-button {
+    background-color: #0000ff;
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    box-shadow: inset 0px 5px 5px rgba(0, 0, 0, 0.2),
+      inset 0px -5px 5px rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    margin-top: 10px;
+  }
+  .transaction-button:hover {
+    background-color: #2626ff;
+  }
 }

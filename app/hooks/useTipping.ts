@@ -1,285 +1,233 @@
-import { useState } from "react";
-import { formatEther, parseEther } from "viem";
-import {
-  useAccount,
-  useBalance,
-  useWaitForTransactionReceipt,
-  useWriteContract,
-} from "wagmi";
-import { base } from "wagmi/chains";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// hooks/useTipping.ts
+"use client";
 
-// ABI simplifié (juste les fonctions nécessaires)
-const TIPPING_ABI = [
-  {
-    inputs: [
-      { internalType: "address", name: "_to", type: "address" },
-      { internalType: "string", name: "_message", type: "string" },
-    ],
-    name: "tipEth",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      { internalType: "address", name: "_to", type: "address" },
-      { internalType: "uint256", name: "_amount", type: "uint256" },
-      { internalType: "string", name: "_message", type: "string" },
-    ],
-    name: "tipUsdc",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "uint256", name: "_amount", type: "uint256" }],
-    name: "calculateNetAmount",
-    outputs: [
-      { internalType: "uint256", name: "netAmount", type: "uint256" },
-      { internalType: "uint256", name: "feeAmount", type: "uint256" },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MIN_TIP_AMOUNT_ETH",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "fee",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
+import type { LifecycleStatus } from "@coinbase/onchainkit/transaction";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
+import { Address, encodeFunctionData, formatEther, parseEther } from "viem";
+import { baseSepolia } from "viem/chains";
+import { useAccount, useBalance, useReadContract } from "wagmi";
 
-// Adresse du contrat sur Base
-const TIPPING_CONTRACT =
-  "0xEA90A921e78ea9B0202681CF33359B04d3D81581" as `0x${string}`;
+// USDC sur Base
+const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as Address;
 
-// USDC sur Base Mainnet
-const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as const;
-
-interface TipParams {
-  recipient: string;
-  amount: string; // En ETH ou USDC (format humain: "0.01")
-  message: string;
-  token: "ETH" | "USDC";
-}
+// Platform fee wallet (remplace par ta vraie adresse)
+const PLATFORM_FEE_WALLET =
+  "0x77A89C51f106D6cD547542a3A83FE73cB4459135" as Address;
 
 export function useTipping() {
   const { address, isConnected } = useAccount();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
 
   // Balance ETH
-  const { data: ethBalance, refetch: refetchEth } = useBalance({
+  const { data: ethBalanceData } = useBalance({
     address,
-    chainId: base.id,
+    chainId: baseSepolia.id,
   });
 
   // Balance USDC
-  const { data: usdcBalance, refetch: refetchUsdc } = useBalance({
-    address,
-    token: USDC_ADDRESS,
-    chainId: base.id,
+  const { data: usdcBalanceData } = useReadContract({
+    address: USDC_ADDRESS,
+    abi: [
+      {
+        inputs: [{ name: "account", type: "address" }],
+        name: "balanceOf",
+        outputs: [{ name: "", type: "uint256" }],
+        stateMutability: "view",
+        type: "function",
+      },
+    ],
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
   });
 
-  // Hook pour écrire dans le contrat
-  const { writeContract, data: hash, isPending } = useWriteContract();
+  const ethBalance = ethBalanceData ? formatEther(ethBalanceData.value) : "0";
 
-  // Attendre la confirmation
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const usdcBalance = usdcBalanceData
+    ? formatEther(usdcBalanceData as bigint)
+    : "0";
 
-  /**
-   * Vérifier si l'user a assez de balance
-   */
-  const checkBalance = (amount: string, token: "ETH" | "USDC"): boolean => {
-    if (!isConnected) {
-      setError("Wallet not connected");
-      return false;
-    }
+  const calculateFee = useCallback((amount: number, feePercent: number = 2) => {
+    const fee = (amount * feePercent) / 100;
+    const recipientGets = amount - fee;
+    return { fee, recipientGets };
+  }, []);
 
-    try {
-      const amountBigInt =
-        token === "ETH" ? parseEther(amount) : BigInt(parseFloat(amount) * 1e6); // USDC a 6 decimals
-
-      const balance = token === "ETH" ? ethBalance : usdcBalance;
-
-      if (!balance || balance.value < amountBigInt) {
-        setError(`Insufficient ${token} balance`);
-        return false;
-      }
-
-      // Vérifier le minimum (0.0001 ETH)
-      if (token === "ETH" && parseFloat(amount) < 0.0001) {
-        setError("Minimum tip is 0.0001 ETH");
-        return false;
-      }
-
-      // Vérifier le minimum (0.1 USDC)
-      if (token === "USDC" && parseFloat(amount) < 0.1) {
-        setError("Minimum tip is 0.1 USDC");
-        return false;
-      }
-
-      return true;
-    } catch {
-      setError("Invalid amount");
-      return false;
-    }
-  };
-
-  /**
-   * Calculer les fees (2% par défaut)
-   */
-  const calculateFee = (amount: string): { net: string; fee: string } => {
-    const amountNum = parseFloat(amount);
-    const feeAmount = amountNum * 0.02; // 2%
-    const netAmount = amountNum - feeAmount;
-
-    return {
-      net: netAmount.toFixed(6),
-      fee: feeAmount.toFixed(6),
-    };
-  };
-
-  /**
-   * Envoyer un tip en ETH
-   */
-  const sendTipEth = async ({
-    recipient,
-    amount,
-    message,
-  }: Omit<TipParams, "token">) => {
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      // Vérifier la balance
-      if (!checkBalance(amount, "ETH")) {
-        setIsLoading(false);
+  const buildEthTipCalls = useCallback(
+    (recipient: string, amountETH: number) => {
+      if (!recipient) {
         return null;
       }
 
-      // Vérifier que l'adresse est valide
-      if (!recipient.match(/^0x[a-fA-F0-9]{40}$/)) {
-        setError("Invalid recipient address");
-        setIsLoading(false);
+      if (amountETH <= 0) {
         return null;
       }
 
-      // Envoyer la transaction
-      writeContract({
-        address: TIPPING_CONTRACT,
-        abi: TIPPING_ABI,
-        functionName: "tipEth",
-        args: [recipient as `0x${string}`, message],
-        value: parseEther(amount),
+      if (Number(ethBalance) < amountETH) {
+        return null;
+      }
+
+      // Minimum 0.0001 ETH
+      if (amountETH < 0.0001) {
+        return null;
+      }
+
+      return {
+        to: recipient as Address,
+        value: parseEther(amountETH.toString()),
+        data: "0x" as `0x${string}`,
+      };
+    },
+    [ethBalance]
+  );
+
+  const buildUsdcTipCalls = useCallback(
+    (recipient: Address, amountUSD: number, feePercent: number = 2) => {
+      const { fee, recipientGets } = calculateFee(amountUSD, feePercent);
+
+      const calls = [];
+
+      // Call 1: Transfer USDC au recipient
+      calls.push({
+        to: USDC_ADDRESS,
+        data: encodeFunctionData({
+          abi: [
+            {
+              inputs: [
+                { name: "to", type: "address" },
+                { name: "amount", type: "uint256" },
+              ],
+              name: "transfer",
+              outputs: [{ name: "", type: "bool" }],
+              stateMutability: "nonpayable",
+              type: "function",
+            },
+          ],
+          functionName: "transfer",
+          args: [recipient, parseEther(recipientGets.toString())],
+        }),
       });
 
-      return hash;
-    } catch {
-      setError("Transaction failed");
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * Envoyer un tip en USDC
-   */
-  const sendTipUsdc = async ({
-    recipient,
-    amount,
-    message,
-  }: Omit<TipParams, "token">) => {
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      // Vérifier la balance
-      if (!checkBalance(amount, "USDC")) {
-        setIsLoading(false);
-        return null;
+      // Call 2: Transfer fee USDC à la plateforme
+      if (fee > 0) {
+        calls.push({
+          to: USDC_ADDRESS,
+          data: encodeFunctionData({
+            abi: [
+              {
+                inputs: [
+                  { name: "to", type: "address" },
+                  { name: "amount", type: "uint256" },
+                ],
+                name: "transfer",
+                outputs: [{ name: "", type: "bool" }],
+                stateMutability: "nonpayable",
+                type: "function",
+              },
+            ],
+            functionName: "transfer",
+            args: [PLATFORM_FEE_WALLET, parseEther(fee.toString())],
+          }),
+        });
       }
 
-      // Vérifier que l'adresse est valide
-      if (!recipient.match(/^0x[a-fA-F0-9]{40}$/)) {
-        setError("Invalid recipient address");
-        setIsLoading(false);
-        return null;
+      return calls;
+    },
+    [calculateFee]
+  );
+
+  // Fonction sendTip simplifiée (retourne les calls pour TransactionButton)
+  const sendTip = useCallback(
+    (
+      recipient: string,
+      amount: number,
+      currency: "ETH" | "USDC",
+      feePercent: number = 2,
+      message?: string
+    ) => {
+      if (!recipient) {
+        toast.error("Please enter a recipient address");
+        return [];
       }
 
-      // Convertir en format USDC (6 decimals)
-      const amountUsdc = BigInt(parseFloat(amount) * 1e6);
+      if (amount <= 0) {
+        toast.error("Amount must be greater than 0");
+        return [];
+      }
 
-      // Envoyer la transaction
-      writeContract({
-        address: TIPPING_CONTRACT,
-        abi: TIPPING_ABI,
-        functionName: "tipUsdc",
-        args: [recipient as `0x${string}`, amountUsdc, message],
-      });
+      // Log du message (tu peux stocker ça on-chain ou off-chain)
+      if (message) {
+        console.log("Tip message:", message);
+        // TODO: Store message in database or emit event
+      }
 
-      return hash;
-    } catch {
-      setError("Transaction failed");
-      return null;
-    } finally {
+      if (currency === "ETH") {
+        return buildEthTipCalls(recipient as Address, amount);
+      } else {
+        return buildUsdcTipCalls(recipient as Address, amount, feePercent);
+      }
+    },
+    [buildEthTipCalls, buildUsdcTipCalls]
+  );
+
+  // Lifecycle handler pour TransactionButton
+  const handleLifecycleStatus = useCallback((status: LifecycleStatus) => {
+    console.log("Transaction status:", status);
+
+    if (status.statusName === "init") {
+      setIsLoading(true);
+      setError(null);
+      setIsSuccess(false);
+    }
+
+    if (status.statusName === "success") {
       setIsLoading(false);
-    }
-  };
+      setIsSuccess(true);
+      toast.success("Tip sent successfully! ");
 
-  /**
-   * Fonction générique pour envoyer un tip
-   */
-  const sendTip = async (params: TipParams) => {
-    if (params.token === "ETH") {
-      return sendTipEth(params);
-    } else {
-      return sendTipUsdc(params);
+      if (status.statusData.transactionReceipts) {
+        setTxHash(status.statusData.transactionReceipts[0].transactionHash);
+      }
     }
-  };
 
-  /**
-   * Rafraîchir les balances
-   */
-  const refreshBalances = () => {
-    refetchEth();
-    refetchUsdc();
-  };
+    if (status.statusName === "error") {
+      setIsLoading(false);
+      setIsSuccess(false);
+      setError(
+        new Error(
+          (status as any).statusData?.errorMessage || "Transaction failed"
+        )
+      );
+      toast.error(
+        (status as any).statusData?.errorMessage || "Transaction failed"
+      );
+    }
+  }, []);
 
   return {
-    // État
-    isConnected,
+    // Wallet info
     address,
-    isLoading: isLoading || isPending || isConfirming,
-    isSuccess,
-    error,
-    txHash: hash,
+    isConnected,
 
     // Balances
-    ethBalance: ethBalance ? formatEther(ethBalance.value) : "0",
-    usdcBalance: usdcBalance
-      ? (Number(usdcBalance.value) / 1e6).toFixed(2)
-      : "0",
+    ethBalance,
+    usdcBalance,
 
-    // Fonctions
+    // Transaction state
+    isLoading,
+    isSuccess,
+    error,
+    txHash,
+
+    // Functions
     sendTip,
-    sendTipEth,
-    sendTipUsdc,
-    checkBalance,
     calculateFee,
-    refreshBalances,
+    buildEthTipCalls,
+    buildUsdcTipCalls,
+    handleLifecycleStatus,
   };
 }
-
-export { TIPPING_CONTRACT, USDC_ADDRESS };

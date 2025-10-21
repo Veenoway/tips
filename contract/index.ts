@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = "0xEA90A921e78ea9B0202681CF33359B04d3D81581";
+export const CONTRACT_ADDRESS = "0xA8e74cf0cEEA1956785A79e4c1543fB4dd0303F0";
 
 export const CONTRACT_ABI = [
   {
@@ -14,32 +14,47 @@ export const CONTRACT_ABI = [
   },
   {
     inputs: [],
+    name: "AmountTooHigh",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "AmountTooLow",
     type: "error",
   },
   {
     inputs: [],
-    name: "BatchTooLarge",
+    name: "CannotSubscribeToYourself",
     type: "error",
   },
   {
     inputs: [],
-    name: "CannotTipYourself",
+    name: "EnforcedPause",
     type: "error",
   },
   {
     inputs: [],
-    name: "DirectTransferNotAllowed",
+    name: "ExecutionTooFrequent",
     type: "error",
   },
   {
     inputs: [],
-    name: "EmergencyDelayNotMet",
+    name: "ExecutionWindowClosed",
     type: "error",
   },
   {
     inputs: [],
-    name: "FeeTooHigh",
+    name: "ExecutorNotWhitelisted",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ExpectedPause",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InsufficientDeposit",
     type: "error",
   },
   {
@@ -54,12 +69,17 @@ export const CONTRACT_ABI = [
   },
   {
     inputs: [],
-    name: "MessageTooLong",
+    name: "MonthlyLimitExceeded",
     type: "error",
   },
   {
     inputs: [],
-    name: "NoFeesToWithdraw",
+    name: "NoDepositToWithdraw",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NotSubscriptionOwner",
     type: "error",
   },
   {
@@ -90,6 +110,37 @@ export const CONTRACT_ABI = [
     type: "error",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "SafeERC20FailedOperation",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SubscriptionIsPaused",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SubscriptionNotActive",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "TooEarlyToExecute",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "TooManySkippedPayments",
+    type: "error",
+  },
+  {
     inputs: [],
     name: "TransferFailed",
     type: "error",
@@ -100,42 +151,17 @@ export const CONTRACT_ABI = [
       {
         indexed: true,
         internalType: "address",
-        name: "to",
+        name: "user",
         type: "address",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "ethAmount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "usdcAmount",
+        name: "amount",
         type: "uint256",
       },
     ],
-    name: "EmergencyWithdraw",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "oldFee",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "newFee",
-        type: "uint256",
-      },
-    ],
-    name: "FeeUpdated",
+    name: "EthDeposited",
     type: "event",
   },
   {
@@ -144,23 +170,36 @@ export const CONTRACT_ABI = [
       {
         indexed: true,
         internalType: "address",
-        name: "to",
+        name: "user",
         type: "address",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "ethAmount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "usdcAmount",
+        name: "amount",
         type: "uint256",
       },
     ],
-    name: "FeesWithdrawn",
+    name: "EthWithdrawn",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "executor",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "status",
+        type: "bool",
+      },
+    ],
+    name: "ExecutorWhitelisted",
     type: "event",
   },
   {
@@ -201,37 +240,50 @@ export const CONTRACT_ABI = [
       {
         indexed: true,
         internalType: "uint256",
-        name: "tipId",
+        name: "subId",
         type: "uint256",
       },
       {
         indexed: true,
         internalType: "address",
-        name: "from",
+        name: "subscriber",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "totalPaid",
+        type: "uint256",
+      },
+    ],
+    name: "SubscriptionCancelled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "subId",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "subscriber",
         type: "address",
       },
       {
         indexed: true,
         internalType: "address",
-        name: "to",
+        name: "recipient",
         type: "address",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "grossAmount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "netAmount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "feeAmount",
+        name: "amount",
         type: "uint256",
       },
       {
@@ -242,12 +294,81 @@ export const CONTRACT_ABI = [
       },
       {
         indexed: false,
-        internalType: "string",
-        name: "message",
-        type: "string",
+        internalType: "enum RecurringTipsSecure.Frequency",
+        name: "frequency",
+        type: "uint8",
       },
     ],
-    name: "TipSent",
+    name: "SubscriptionCreated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "subId",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "executor",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "nextPayment",
+        type: "uint256",
+      },
+    ],
+    name: "SubscriptionExecuted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "subId",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "subscriber",
+        type: "address",
+      },
+    ],
+    name: "SubscriptionPaused",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "subId",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "subscriber",
+        type: "address",
+      },
+    ],
+    name: "SubscriptionResumed",
     type: "event",
   },
   {
@@ -264,8 +385,71 @@ export const CONTRACT_ABI = [
     type: "event",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "UsdcDeposited",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "UsdcWithdrawn",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "maxPerPayment",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "maxPerMonth",
+        type: "uint256",
+      },
+    ],
+    name: "UserLimitsUpdated",
+    type: "event",
+  },
+  {
     inputs: [],
-    name: "BASIS",
+    name: "GRACE_PERIOD",
     outputs: [
       {
         internalType: "uint256",
@@ -278,7 +462,7 @@ export const CONTRACT_ABI = [
   },
   {
     inputs: [],
-    name: "EMERGENCY_DELAY",
+    name: "MAX_SKIPPED_PAYMENTS",
     outputs: [
       {
         internalType: "uint256",
@@ -291,7 +475,7 @@ export const CONTRACT_ABI = [
   },
   {
     inputs: [],
-    name: "MAX_BATCH_SIZE",
+    name: "MIN_AMOUNT",
     outputs: [
       {
         internalType: "uint256",
@@ -304,7 +488,7 @@ export const CONTRACT_ABI = [
   },
   {
     inputs: [],
-    name: "MAX_FEE",
+    name: "MIN_EXECUTION_DELAY",
     outputs: [
       {
         internalType: "uint256",
@@ -316,8 +500,37 @@ export const CONTRACT_ABI = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "MAX_MESSAGE_LENGTH",
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_subId",
+        type: "uint256",
+      },
+    ],
+    name: "cancelSubscription",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_recipient",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+      {
+        internalType: "enum RecurringTipsSecure.Frequency",
+        name: "_frequency",
+        type: "uint8",
+      },
+    ],
+    name: "createSubscriptionEth",
     outputs: [
       {
         internalType: "uint256",
@@ -325,46 +538,43 @@ export const CONTRACT_ABI = [
         type: "uint256",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_recipient",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+      {
+        internalType: "enum RecurringTipsSecure.Frequency",
+        name: "_frequency",
+        type: "uint8",
+      },
+    ],
+    name: "createSubscriptionUsdc",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
     inputs: [],
-    name: "MAX_PAGE_SIZE",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MIN_TIP_AMOUNT_ETH",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MIN_TIP_AMOUNT_USDC",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
+    name: "depositEth",
+    outputs: [],
+    stateMutability: "payable",
     type: "function",
   },
   {
@@ -375,38 +585,27 @@ export const CONTRACT_ABI = [
         type: "uint256",
       },
     ],
-    name: "calculateNetAmount",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "netAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "feeAmount",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
+    name: "depositUsdc",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
     inputs: [],
-    name: "collectedFeesEth",
-    outputs: [
+    name: "emergencyWithdrawAll",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
       {
-        internalType: "uint256",
+        internalType: "address",
         name: "",
-        type: "uint256",
+        type: "address",
       },
     ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "collectedFeesUsdc",
+    name: "ethDeposits",
     outputs: [
       {
         internalType: "uint256",
@@ -420,27 +619,14 @@ export const CONTRACT_ABI = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "_to",
-        type: "address",
-      },
-    ],
-    name: "emergencyWithdraw",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "fee",
-    outputs: [
-      {
         internalType: "uint256",
-        name: "",
+        name: "_subId",
         type: "uint256",
       },
     ],
-    stateMutability: "view",
+    name: "executeSubscription",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -456,58 +642,7 @@ export const CONTRACT_ABI = [
         type: "uint256",
       },
     ],
-    name: "getRecentTips",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "address",
-            name: "from",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "to",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "amount",
-            type: "uint256",
-          },
-          {
-            internalType: "bool",
-            name: "isEth",
-            type: "bool",
-          },
-          {
-            internalType: "string",
-            name: "message",
-            type: "string",
-          },
-          {
-            internalType: "uint256",
-            name: "timestamp",
-            type: "uint256",
-          },
-        ],
-        internalType: "struct TippingBot.Tip[]",
-        name: "",
-        type: "tuple[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_user",
-        type: "address",
-      },
-    ],
-    name: "getReceivedTips",
+    name: "getExecutableSubscriptions",
     outputs: [
       {
         internalType: "uint256[]",
@@ -526,7 +661,7 @@ export const CONTRACT_ABI = [
         type: "address",
       },
     ],
-    name: "getSentTips",
+    name: "getReceivedSubscriptions",
     outputs: [
       {
         internalType: "uint256[]",
@@ -538,58 +673,25 @@ export const CONTRACT_ABI = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "getStats",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "_totalTips",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_totalVolumeEth",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_totalVolumeUsdc",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_collectedFeesEth",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_collectedFeesUsdc",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "uint256",
-        name: "_tipId",
+        name: "_subId",
         type: "uint256",
       },
     ],
-    name: "getTip",
+    name: "getSubscription",
     outputs: [
       {
         components: [
           {
             internalType: "address",
-            name: "from",
+            name: "subscriber",
             type: "address",
           },
           {
             internalType: "address",
-            name: "to",
+            name: "recipient",
             type: "address",
           },
           {
@@ -603,17 +705,47 @@ export const CONTRACT_ABI = [
             type: "bool",
           },
           {
-            internalType: "string",
-            name: "message",
-            type: "string",
+            internalType: "enum RecurringTipsSecure.Frequency",
+            name: "frequency",
+            type: "uint8",
           },
           {
             internalType: "uint256",
-            name: "timestamp",
+            name: "nextPayment",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "startDate",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalPaid",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "paymentCount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "skippedPayments",
+            type: "uint256",
+          },
+          {
+            internalType: "enum RecurringTipsSecure.SubscriptionStatus",
+            name: "status",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "lastExecutionBlock",
             type: "uint256",
           },
         ],
-        internalType: "struct TippingBot.Tip",
+        internalType: "struct RecurringTipsSecure.Subscription",
         name: "",
         type: "tuple",
       },
@@ -622,8 +754,102 @@ export const CONTRACT_ABI = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_user",
+        type: "address",
+      },
+    ],
+    name: "getUserDeposits",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "eth",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "usdcAmount",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_user",
+        type: "address",
+      },
+    ],
+    name: "getUserSubscriptions",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_subId",
+        type: "uint256",
+      },
+    ],
+    name: "isExecutable",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "lastExecutionTimestamp",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
-    name: "getTipCount",
+    name: "maxAmountPerPayment",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "maxTotalPerMonth",
     outputs: [
       {
         internalType: "uint256",
@@ -655,16 +881,16 @@ export const CONTRACT_ABI = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "pauseTime",
-    outputs: [
+    inputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "_subId",
         type: "uint256",
       },
     ],
-    stateMutability: "view",
+    name: "pauseSubscription",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -681,6 +907,30 @@ export const CONTRACT_ABI = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "receivedSubscriptions",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "renounceOwnership",
     outputs: [],
@@ -691,11 +941,11 @@ export const CONTRACT_ABI = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_newFee",
+        name: "_subId",
         type: "uint256",
       },
     ],
-    name: "setFee",
+    name: "resumeSubscription",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -703,88 +953,81 @@ export const CONTRACT_ABI = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "_to",
-        type: "address",
-      },
-      {
-        internalType: "string",
-        name: "_message",
-        type: "string",
-      },
-    ],
-    name: "tipEth",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address[]",
-        name: "_recipients",
-        type: "address[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "_amounts",
-        type: "uint256[]",
-      },
-      {
-        internalType: "string",
-        name: "_message",
-        type: "string",
-      },
-    ],
-    name: "tipMultipleEth",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address[]",
-        name: "_recipients",
-        type: "address[]",
-      },
-      {
-        internalType: "uint256[]",
-        name: "_amounts",
-        type: "uint256[]",
-      },
-      {
-        internalType: "string",
-        name: "_message",
-        type: "string",
-      },
-    ],
-    name: "tipMultipleUsdc",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_to",
-        type: "address",
+        internalType: "uint256",
+        name: "_maxPerPayment",
+        type: "uint256",
       },
       {
         internalType: "uint256",
-        name: "_amount",
+        name: "_maxPerMonth",
+        type: "uint256",
+      },
+    ],
+    name: "setGlobalLimits",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_executor",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "_status",
+        type: "bool",
+      },
+    ],
+    name: "setTrustedExecutor",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_maxAmountPerPayment",
         type: "uint256",
       },
       {
-        internalType: "string",
-        name: "_message",
-        type: "string",
+        internalType: "uint256",
+        name: "_maxTotalPerMonth",
+        type: "uint256",
       },
     ],
-    name: "tipUsdc",
+    name: "setUserLimits",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bool",
+        name: "_enabled",
+        type: "bool",
+      },
+    ],
+    name: "setWhitelistEnabled",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "subscriptionCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -795,16 +1038,16 @@ export const CONTRACT_ABI = [
         type: "uint256",
       },
     ],
-    name: "tips",
+    name: "subscriptions",
     outputs: [
       {
         internalType: "address",
-        name: "from",
+        name: "subscriber",
         type: "address",
       },
       {
         internalType: "address",
-        name: "to",
+        name: "recipient",
         type: "address",
       },
       {
@@ -818,52 +1061,43 @@ export const CONTRACT_ABI = [
         type: "bool",
       },
       {
-        internalType: "string",
-        name: "message",
-        type: "string",
+        internalType: "enum RecurringTipsSecure.Frequency",
+        name: "frequency",
+        type: "uint8",
       },
       {
         internalType: "uint256",
-        name: "timestamp",
+        name: "nextPayment",
         type: "uint256",
       },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "totalTips",
-    outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "startDate",
         type: "uint256",
       },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "totalVolumeEth",
-    outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "totalPaid",
         type: "uint256",
       },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "totalVolumeUsdc",
-    outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "paymentCount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "skippedPayments",
+        type: "uint256",
+      },
+      {
+        internalType: "enum RecurringTipsSecure.SubscriptionStatus",
+        name: "status",
+        type: "uint8",
+      },
+      {
+        internalType: "uint256",
+        name: "lastExecutionBlock",
         type: "uint256",
       },
     ],
@@ -881,6 +1115,25 @@ export const CONTRACT_ABI = [
     name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "trustedExecutors",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -910,17 +1163,46 @@ export const CONTRACT_ABI = [
         name: "",
         type: "address",
       },
+    ],
+    name: "usdcDeposits",
+    outputs: [
       {
         internalType: "uint256",
         name: "",
         type: "uint256",
       },
     ],
-    name: "userReceivedTips",
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "userLimits",
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "maxAmountPerPayment",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "maxTotalPerMonth",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "spentThisMonth",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "monthStart",
         type: "uint256",
       },
     ],
@@ -940,7 +1222,7 @@ export const CONTRACT_ABI = [
         type: "uint256",
       },
     ],
-    name: "userSentTips",
+    name: "userSubscriptions",
     outputs: [
       {
         internalType: "uint256",
@@ -952,14 +1234,40 @@ export const CONTRACT_ABI = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "whitelistEnabled",
+    outputs: [
       {
-        internalType: "address",
-        name: "_to",
-        type: "address",
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
-    name: "withdrawFees",
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+    ],
+    name: "withdrawEth",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+    ],
+    name: "withdrawUsdc",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
