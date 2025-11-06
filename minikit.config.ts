@@ -19,9 +19,8 @@ export const minikitConfig = {
   },
   miniapp: {
     version: "1",
-    name: "Basie",
-    subtitle:
-      "Basie is a free to mint NFT that will be used to reward users for their engagement on Base to get a chance to get rewarded.",
+    name: "Basie NFT",
+    subtitle: "Basie is a free to mint NFT",
     description:
       "Basie is a free to mint NFT that will be used to reward users for their engagement on Base to get a chance to get rewarded.",
     screenshotUrls: [`${ROOT_URL}/basie.png`],
@@ -30,16 +29,8 @@ export const minikitConfig = {
     splashBackgroundColor: "#000000",
     homeUrl: ROOT_URL,
     webhookUrl: `${ROOT_URL}/api/webhook`,
-    primaryCategory: "nft",
-    tags: [
-      "nft",
-      "basie",
-      "basie-nft",
-      "basie-nft-mint",
-      "reward",
-      "engagement",
-      "base",
-    ],
+    primaryCategory: "art-creativity",
+    tags: ["nft", "basie", "reward", "defi", "base"],
     heroImageUrl: `${ROOT_URL}/blue-hero.png`,
     tagline: "",
     ogTitle: "",
