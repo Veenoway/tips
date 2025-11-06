@@ -126,7 +126,7 @@ export default function Home() {
               <div
                 style={{ fontSize: "20px", color: "white", fontWeight: "bold" }}
               >
-                {totalSupply}/{maxSupply}
+                {totalSupply}/{10000}
               </div>
             </div>
             <div
@@ -176,9 +176,7 @@ export default function Home() {
                 style={{
                   height: "100%",
                   background: "linear-gradient(90deg, #22c55e, #10b981)",
-                  width: `${
-                    maxSupply > 0 ? (totalSupply / maxSupply) * 100 : 0
-                  }%`,
+                  width: `${10000 > 0 ? (totalSupply / 10000) * 100 : 0}%`,
                   transition: "width 0.5s ease",
                 }}
               />
