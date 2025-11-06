@@ -251,7 +251,6 @@
 .mintButton:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.95);
   transform: translateY(-1px);
-  box-shadow: 0 6px 25px rgba(255, 255, 255, 0.4);
 }
 
 .mintButton:active:not(:disabled) {
