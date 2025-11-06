@@ -94,7 +94,7 @@ export default function Home() {
             <h2 className={styles.nftTitle}>Basie</h2>
             <p className={styles.nftDescription}>
               Basie is a free to mint NFT that will be used to reward users for
-              their engagement on Base to get a chance to get rewarded.
+              their engagement on Base.
             </p>
           </div>
           <div
