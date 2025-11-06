@@ -1,6 +1,6 @@
 "use client";
 
-import { TransactionWrapper } from "@/components/TransactionWrapper";
+import { useMint } from "@/hooks/useMint";
 import {
   Address,
   EthBalance,
@@ -15,24 +15,13 @@ import {
   WalletDropdownBasename,
   WalletDropdownDisconnect,
 } from "@coinbase/onchainkit/wallet";
-import { useEffect, useMemo, useState } from "react";
-import { useTipping } from "./hooks/useTipping";
+import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 import styles from "./page.module.css";
 
-type Currency = "ETH" | "USDC";
-
 export default function Home() {
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency>("ETH");
-  const [amount, setAmount] = useState(0.0001);
-  const [recipient, setRecipient] = useState("");
-  const [message, setMessage] = useState("");
-
-  const quickAmounts = [0.0001, 0.001, 0.01, 0.1];
-  const platformFeePercent = 0;
-  const platformFee = (amount * platformFeePercent) / 100;
-  const recipientGets = amount - platformFee;
-
   const { isFrameReady, setFrameReady } = useMiniKit();
+  const { isConnected } = useAccount();
 
   useEffect(() => {
     if (!isFrameReady) {
@@ -40,54 +29,31 @@ export default function Home() {
     }
   }, [setFrameReady, isFrameReady]);
 
-  const {
-    isConnected,
-    isLoading,
-    isSuccess,
-    error,
-    ethBalance,
-    usdcBalance,
-    sendTip,
-    calculateFee,
-    txHash,
-    buildEthTipCalls,
-    handleLifecycleStatus,
-  } = useTipping();
+  const { mintNFT, isPending, isMining, isMined, writeError, txError, txHash } =
+    useMint();
 
-  console.log(
-    isConnected,
-    isLoading,
-    isSuccess,
-    error,
-    ethBalance,
-    usdcBalance,
-    sendTip,
-    calculateFee,
-    txHash
-  );
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  const calls = useMemo(() => {
-    const call = buildEthTipCalls(recipient as `0x${string}`, amount);
-    return call ? [call] : [];
-  }, [recipient, amount, buildEthTipCalls]);
+  useEffect(() => {
+    if (isMined) {
+      setShowSuccess(true);
+    }
+  }, [isMined]);
 
-  console.log("calls", calls);
+  const handleMint = async () => {
+    await mintNFT();
+  };
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.contentWrapper}>
-        <div
-          style={{
-            position: "absolute",
-            right: "20px",
-            top: "20px",
-          }}
-        >
+        {/* Wallet Button - Top Right */}
+        <div className={styles.walletContainer}>
           <Wallet>
-            <ConnectWallet>
+            <ConnectWallet className={styles.connectButton}>
               <Name />
             </ConnectWallet>
-            <WalletDropdown>
+            <WalletDropdown className={styles.connectButton}>
               <Identity hasCopyAddressOnClick>
                 <Name />
                 <Address />
@@ -98,135 +64,157 @@ export default function Home() {
             </WalletDropdown>
           </Wallet>
         </div>
+
         {/* Header */}
-        <header className={styles.header}>
-          <h1 className={styles.title}>TipBase</h1>
-          <p className={styles.subtitle}>Fast & Simple Tips on Base</p>
-        </header>
+        <header className={styles.header}></header>
 
+        {/* Main Card */}
         <div className={styles.card}>
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Send To</label>
-            <input
-              type="text"
-              value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
-              placeholder="0x... or ENS"
-              className={styles.input}
-            />
-          </div>
-
-          <div className={styles.currencySection}>
-            <div className={styles.currencyToggle}>
-              {(["ETH", "USDC"] as Currency[]).map((currency) => (
-                <button
-                  key={currency}
-                  onClick={() => setSelectedCurrency(currency)}
-                  className={`${styles.currencyButton} ${
-                    selectedCurrency === currency ? styles.active : ""
-                  } ${currency === "USDC" ? styles.disabled : ""}`}
-                  disabled={currency === "USDC"}
-                >
-                  {currency}
-                </button>
-              ))}
-            </div>
-
-            <div className={styles.amountDisplay}>{amount}</div>
-            {/* <div className={styles.ethEquivalent}>
-              ≈ {ethAmount.toFixed(4)} ETH
-            </div> */}
-
-            {/* Quick Amount Buttons */}
-            <div className={styles.quickAmounts}>
-              {quickAmounts.map((quickAmount) => (
-                <button
-                  key={quickAmount}
-                  onClick={() => setAmount(quickAmount)}
-                  className={styles.quickAmountButton}
-                >
-                  {quickAmount}
-                </button>
-              ))}
+          {/* NFT Image */}
+          <div className={styles.nftImageContainer}>
+            <div className={styles.nftImage}>
+              <div className={styles.nftPlaceholder}>
+                <img
+                  src="https://ipfs.io/ipfs/bafybeiay5svghk2wgdti3q76bg7prmh6z5avostyxkvaa5lopkb4hdwk7e"
+                  alt="Basie"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Divider */}
+          {/* NFT Info */}
+          <div className={styles.nftInfo}>
+            <h2 className={styles.nftTitle}>Basie</h2>
+            <p className={styles.nftDescription}>
+              Basie is a free to mint NFT that will be used to reward users for
+              their engagement on Base to get a chance to get rewarded for my
+              next project.
+            </p>
+          </div>
           <div className={styles.divider} />
 
-          {/* Message Input */}
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Message (Optional)</label>
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Add a nice message..."
-              className={styles.input}
-            />
-          </div>
+          {/* Success Message */}
+          {showSuccess && (
+            <div className={styles.successMessage}>
+              <div className={styles.successIcon}>✓</div>
+              <div>
+                <h3 className={styles.successTitle}>Minted Successfully! 🎉</h3>
+                <p className={styles.successText}>
+                  Basie is now in your wallet
+                </p>
+                {txHash && (
+                  <a
+                    href={`https://basescan.org/tx/${txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.txLink}
+                  >
+                    View on BaseScan →
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
 
-          {/* Info Rows */}
-          <div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Amount</span>
-              <span className={styles.infoValue}>{amount} ETH</span>
+          {!showSuccess && (
+            <button
+              onClick={() => {
+                if (isConnected) {
+                  handleMint();
+                }
+              }}
+              disabled={isPending || isMining}
+              className={styles.mintButton}
+            >
+              {isPending || isMining ? (
+                <span className={styles.loadingContainer}>
+                  <svg className={styles.spinner} viewBox="0 0 24 24">
+                    <circle
+                      className={styles.spinnerCircle}
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className={styles.spinnerPath}
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  {isPending ? "Confirming..." : "Minting..."}
+                </span>
+              ) : (
+                "Mint Basie"
+              )}
+            </button>
+          )}
+
+          {(writeError || txError) && (
+            <div className={styles.errorMessage}>
+              <p>Error: {writeError?.message || "Transaction failed"}</p>
             </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>
-                Platform Fee ({platformFeePercent}%)
-              </span>
-              <span className={styles.infoValue}>${platformFee}</span>
+          )}
+
+          {/* Features */}
+          <div className={styles.features}>
+            <div className={styles.feature}>
+              <svg
+                className={styles.featureIcon}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <span>On-chain metadata</span>
             </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Recipient Gets</span>
-              <span className={styles.infoValue}>{recipientGets} ETH</span>
+            <div className={styles.feature}>
+              <svg
+                className={styles.featureIcon}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <span>ERC-721 standard</span>
+            </div>
+            <div className={styles.feature}>
+              <svg
+                className={styles.featureIcon}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <span>Deployed on Base</span>
             </div>
           </div>
-
-          {/* Send Button */}
-          <TransactionWrapper
-            calls={calls}
-            onStatus={handleLifecycleStatus}
-            disabled={!recipient || calls.length === 0}
-          />
         </div>
 
-        {/* Balance Card */}
-        {/* <div className={styles.card}>
-          <label className={styles.label}>Your Balance</label>
-
-          <div className={styles.balanceBox}>
-            <div className={styles.balanceRow}>
-              <span className={styles.balanceLabel}>ETH</span>
-              <span className={styles.balanceValue}>0.124 ETH</span>
-            </div>
-            <div className={styles.balanceRow}>
-              <span className={styles.balanceLabel}>USDC</span>
-              <span className={styles.balanceValue}>45.00 USDC</span>
-            </div>
-          </div>
-
-          <button className={styles.primaryButton}>Withdraw</button>
-        </div> */}
-
-        {/* Stats Card */}
-        {/* <div className={styles.card}>
-          <div className={styles.statsContainer}>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>1,234</div>
-              <div className={styles.statLabel}>Total Tips</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>$42K</div>
-              <div className={styles.statLabel}>Volume</div>
-            </div>
-            <div className={styles.statItem}>
-              <div className={styles.statNumber}>$840</div>
-              <div className={styles.statLabel}>Earned</div>
-            </div>
-          </div>
-        </div> */}
+        {/* Footer */}
+        <footer className={styles.footer}>
+          <p>Powered by Base</p>
+        </footer>
       </div>
     </div>
   );

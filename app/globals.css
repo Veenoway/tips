@@ -76,4 +76,15 @@
   .transaction-button:hover {
     background-color: #2626ff;
   }
+
+  .connectButton {
+    background-color: #fff;
+    color: #0000ff;
+    border: none;
+    padding: 5px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+  }
 }
