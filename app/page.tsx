@@ -35,7 +35,6 @@ export default function Home() {
     isMining,
     isMined,
     writeError,
-    txError,
     txHash,
     totalSupply,
   } = useMint();
@@ -244,9 +243,9 @@ export default function Home() {
           </button>
         )}
 
-        {(writeError || txError) && (
+        {writeError && (
           <div className={styles.errorMessage}>
-            <p>Error: {writeError?.message || "Transaction failed"}</p>
+            <p>Error: {writeError?.message}</p>
           </div>
         )}
 
