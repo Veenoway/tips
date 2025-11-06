@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { useAccount, useTransaction, useWriteContract } from "wagmi";
+import {
+  useAccount,
+  useReadContract,
+  useTransaction,
+  useWriteContract,
+} from "wagmi";
 
 const CONTRACT_ADDRESS =
   "0xaaE580126d5C354bfb006Db5a3e5C23DC4077DF6" as `0x${string}`;
@@ -197,9 +202,30 @@ export function useMint() {
     hash: txHash ?? undefined,
   });
 
+  // Lire le total supply
+  const { data: totalSupply, refetch: refetchTotalSupply } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "totalSupply",
+  });
+
+  // Lire le max supply
+  const { data: maxSupply } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: "MAX_SUPPLY",
+  });
+
   useEffect(() => {
     if (hash) setTxHash(hash);
   }, [hash]);
+
+  // Rafraîchir le total supply après un mint réussi
+  useEffect(() => {
+    if (isMined) {
+      refetchTotalSupply();
+    }
+  }, [isMined, refetchTotalSupply]);
 
   const mintNFT = useCallback(() => {
     const mint = async () => {
@@ -229,5 +255,9 @@ export function useMint() {
     txError,
     txHash,
     txData,
+    totalSupply: totalSupply ? Number(totalSupply) : 0,
+    maxSupply: maxSupply ? Number(maxSupply) : 0,
+    remaining:
+      maxSupply && totalSupply ? Number(maxSupply) - Number(totalSupply) : 0,
   };
 }
