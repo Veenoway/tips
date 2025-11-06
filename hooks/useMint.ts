@@ -7,7 +7,7 @@ import {
 } from "wagmi";
 
 const CONTRACT_ADDRESS =
-  "0x7D70cA2251C1aF3Cc7debA45652B7d69449d9B14" as `0x${string}`;
+  "0x6b5D5FbaD0Fb27439cDaBBFA13dBB0bE995Ec6e4" as `0x${string}`;
 
 const CONTRACT_ABI = [
   {
